@@ -16,10 +16,10 @@ parser = argparse.ArgumentParser(description='Retinaface')
 
 parser.add_argument('-m', '--trained_model', default='./weights/Final_Retinaface.pth',
                     type=str, help='Trained state_dict file path to open')
-parser.add_argument('--cpu', action="store_true", default=False, help='Use cpu inference')
-parser.add_argument('--confidence_threshold', default=0.05, type=float, help='confidence_threshold')
+parser.add_argument('--cpu', action="store_true", default=True, help='Use cpu inference')
+parser.add_argument('--confidence_threshold', default=0.99, type=float, help='confidence_threshold')
 parser.add_argument('--top_k', default=5000, type=int, help='top_k')
-parser.add_argument('--nms_threshold', default=0.3, type=float, help='nms_threshold')
+parser.add_argument('--nms_threshold', default=0.4, type=float, help='nms_threshold')
 parser.add_argument('--keep_top_k', default=750, type=int, help='keep_top_k')
 parser.add_argument('-s', '--save_image', action="store_true", default=True, help='show detection results')
 parser.add_argument('--vis_thres', default=0.6, type=float, help='visualization_threshold')
@@ -69,17 +69,18 @@ if __name__ == '__main__':
     net = load_model(net, args.trained_model, args.cpu)
     net.eval()
     print('Finished loading model!')
-    print(net)
+    # print(net)
     cudnn.benchmark = True
     device = torch.device("cpu" if args.cpu else "cuda")
     net = net.to(device)
 
     resize = 1
-
+    cam = cv2.VideoCapture(0)
     # testing begin
-    for i in range(100):
-        image_path = "./curve/test.jpg"
-        img_raw = cv2.imread(image_path, cv2.IMREAD_COLOR)
+    while 1:
+        ret, img_raw = cam.read()
+        # image_path = "/media/yituadmin/229G/old.jpg"
+        # img_raw = cv2.imread(image_path, cv2.IMREAD_COLOR)
 
         img = np.float32(img_raw)
 
@@ -150,13 +151,14 @@ if __name__ == '__main__':
                             cv2.FONT_HERSHEY_DUPLEX, 0.5, (255, 255, 255))
 
                 # landms
-                cv2.circle(img_raw, (b[5], b[6]), 4, (0, 0, 255), 4)
-                cv2.circle(img_raw, (b[7], b[8]), 4, (0, 255, 255), 4)
-                cv2.circle(img_raw, (b[9], b[10]), 4, (255, 0, 255), 4)
-                cv2.circle(img_raw, (b[11], b[12]), 4, (0, 255, 0), 4)
-                cv2.circle(img_raw, (b[13], b[14]), 4, (255, 0, 0), 4)
-            # save image
-
-            name = "test.jpg"
-            cv2.imwrite(name, img_raw)
+                # cv2.circle(img_raw, (b[5], b[6]), 4, (0, 0, 255), 4)
+                # cv2.circle(img_raw, (b[7], b[8]), 4, (0, 255, 255), 4)
+                # cv2.circle(img_raw, (b[9], b[10]), 4, (255, 0, 255), 4)
+                # cv2.circle(img_raw, (b[11], b[12]), 4, (0, 255, 0), 4)
+                # cv2.circle(img_raw, (b[13], b[14]), 4, (255, 0, 0), 4)
+                print((b[0], b[1]), (b[2], b[3]))
+        cv2.imshow('asd', img_raw)
+        key = cv2.waitKey(1)
+        if key == ord('q'):
+            break
 

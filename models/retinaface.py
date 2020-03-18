@@ -25,8 +25,9 @@ class ClassHead(nn.Module):
         # b, h, w, c = out.shape
         # out = out.view(b, h, w, self.num_anchors, 2)
         # out = self.output_act(out)
-        
-        return out.view(out.shape[0], -1, 2)
+        # return torch.flatten(out,-1)
+        return out.reshape(torch.tensor(out.shape[0]), -1, 2)
+        # return out.view(out.shape[0], -1, 2)
 
 class BboxHead(nn.Module):
     def __init__(self,inchannels=512,num_anchors=3):
@@ -36,8 +37,8 @@ class BboxHead(nn.Module):
     def forward(self,x):
         out = self.conv1x1(x)
         out = out.permute(0,2,3,1).contiguous()
-
-        return out.view(out.shape[0], -1, 4)
+        return out.reshape(torch.tensor(out.shape[0]), -1, 4)
+        # return out.view(out.shape[0], -1, 4)
 
 class LandmarkHead(nn.Module):
     def __init__(self,inchannels=512,num_anchors=3):
@@ -47,8 +48,8 @@ class LandmarkHead(nn.Module):
     def forward(self,x):
         out = self.conv1x1(x)
         out = out.permute(0,2,3,1).contiguous()
-
-        return out.view(out.shape[0], -1, 10)
+        return out.reshape(torch.tensor(out.shape[0]), -1, 10)
+        # return out.view(out.shape[0], -1, 10)
 
 class RetinaFace(nn.Module):
     def __init__(self, phase = 'train', net = 'mnet0.25', return_layers = {'stage1': 1, 'stage2': 2, 'stage3': 3}):
@@ -58,7 +59,7 @@ class RetinaFace(nn.Module):
         if net == 'mnet0.25':
             backbone = MobileNetV1()
             if True:
-                checkpoint = torch.load("model_best.pth.tar", map_location=torch.device('cpu'))
+                checkpoint = torch.load("./model_best.pth.tar", map_location=torch.device('cpu'))
                 from collections import OrderedDict
                 new_state_dict = OrderedDict()
                 for k, v in checkpoint['state_dict'].items():
@@ -66,6 +67,7 @@ class RetinaFace(nn.Module):
                     new_state_dict[name] = v
                 # load params
                 backbone.load_state_dict(new_state_dict)
+                # backbone.load_state_dict(checkpoint)
 
         self.body = _utils.IntermediateLayerGetter(backbone, return_layers)
         in_channels_stage2 = 32
@@ -123,3 +125,7 @@ class RetinaFace(nn.Module):
         else:
             output = (bbox_regressions, F.softmax(classifications, dim=-1), ldm_regressions)
         return output
+
+if __name__ == '__main__':
+    a = RetinaFace(phase='test')
+    print(a)
